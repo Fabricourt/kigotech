@@ -18,7 +18,7 @@ if (isset($_SESSION['email'])) {
 				}
 				switch ($userlevel) {
 					case 'a':
-					$userlevel = 'CHAIRPERSON';
+					$userlevel = 'ADMINISTRATOR';
 						break;
 					case 'b':
 					$userlevel = 'VICE CHAIRPERSON';
@@ -33,11 +33,11 @@ if (isset($_SESSION['email'])) {
 					$userlevel = 'QUALITY AND CONTROL';
 						break;
 					case 'f':
-					$userlevel = 'IT MANAGER';
+					$userlevel = 'USER';
 						break;
 
 					default:
-						$userlevel = 'USER';
+						$userlevel = 'UNIQUE USER';
 						break;
 				}
 				if ($avatar == NULL) {
@@ -49,12 +49,41 @@ if (isset($_SESSION['email'])) {
 
 #############################edit user personal details######################
 if (isset($_POST['uname']) && isset($_POST['new_email'])) {
-	$uname = $_POST['uname'];
-		$new_email = $_POST['new_email'];
-	$gender = $_POST['gender'];
+	$uname = preg_replace('#[^a-z0-9]#i', '', $_POST['uname']);
+		$new_email = mysqli_real_escape_string($db_connection, $_POST['new_email']);
+	$gender = preg_replace('#[^a-z]#i', '', $_POST['gender']);
 		$phone = $_POST['phone'];
 
-			$sql = "UPDATE `kigotech_db`.`users` SET `username` = '$uname', `gender` = '$gender', `email` = '$new_email', `phone` = '$phone' WHERE `users`.`email` = '$email'  LIMIT 1";
+
+
+
+
+	// DUPLICATE DATA CHECKS FOR USERNAME AND EMAIL
+	$sql = "SELECT id FROM users WHERE username='$uname' AND id != '$id' LIMIT 1";//1 EXCEPT SELECT id FROM users WHERE username='$u'LIMIT 1";
+    $query = mysqli_query($db_connection, $sql); 
+	$u_check = mysqli_num_rows($query);
+	// -------------------------------------------
+	$sql = "SELECT id FROM users WHERE email='$new_email' AND id != '$id' LIMIT 1";
+    $query = mysqli_query($db_connection, $sql); 
+	$e_check = mysqli_num_rows($query);
+	// FORM DATA ERROR HANDLING
+	if($uname == "" || $new_email == "" || $phone == "" || $gender == ""){
+		echo "The form submission is missing values.";
+        exit();
+	} else if ($u_check > 0){ 
+        echo "The username you entered is alreay taken";
+        exit();
+	} else if ($e_check > 0){ 
+        echo "That email address is already in use in the system, if this is your email please go and login";
+        exit();
+	} else if (strlen($uname) < 3 || strlen($uname) > 16) {
+        echo "Username must be between 3 and 16 characters";
+        exit(); 
+    } else if (is_numeric($uname[0])) {
+        echo 'Username cannot begin with a number';
+        exit();
+    }else{
+    	$sql = "UPDATE `kigotech_db`.`users` SET `username` = '$uname', `gender` = '$gender', `email` = '$new_email', `phone` = '$phone' WHERE `users`.`email` = '$email'  LIMIT 1";
 			$query = mysqli_query($db_connection,$sql);
 
 			if ($query) {
@@ -75,6 +104,8 @@ if (isset($_POST['uname']) && isset($_POST['new_email'])) {
 		echo "error_updating_details";
 			exit();
 	}
+    }
+			
 			}
 
 #############################add or edit executive userlevel######################
@@ -82,7 +113,7 @@ if (isset($_POST['PersonalDescription']) && isset($_POST['PersonalBtn'])) {
 	$description = $_POST['PersonalDescription'];
 		$btn = $_POST['PersonalBtn'];
 
-			$sql = "UPDATE users SET description='$description' WHERE email='$db_email' LIMIT 1";
+			$sql = "UPDATE users SET description='$description' WHERE email='$email' LIMIT 1";
 			$query = mysqli_query($db_connection,$sql);
 
 			if ($query) {
@@ -161,8 +192,76 @@ else {
 	<script type="text/javascript" src="js/main.js"></script>
 	<script type="text/javascript" src="apps/ckeditor/ckeditor.js"></script>
 
+<script src="js/ajax.js"></script>
+<script src="js/main.js"></script>
 
 	<script type="text/javascript">
+		function restrict(elem){
+	var tf = _(elem);
+	var rx = new RegExp;
+	if(elem == "email"){
+		rx = /['"]/gi;
+	} else if(elem == "username"){
+		rx = /[^a-z0-9]/gi;
+	}else if(elem == "phone"){
+		rx = /[^0-9 ]/gi;
+	}
+	tf.value = tf.value.replace(rx, "");
+}
+		function checkusername(){
+	var u = _("name").value;
+	if(u != ""){
+		_("unamestatus").innerHTML = 'checking ...';
+
+		function ajaxObj(meth, url){
+	var x = new XMLHttpRequest();
+	x.open(meth, url, true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	return x;
+}
+function ajaxReturn(x){
+	if (x.readyState ==4 && x.status == 200) {
+		return true;
+	}
+}
+		
+		var ajax = ajaxObj("POST", "credentialschecker.php");
+        ajax.onreadystatechange = function() {
+	        if(ajaxReturn(ajax) == true) {
+	            _("unamestatus").innerHTML = ajax.responseText;
+	        }
+        }
+        ajax.send("usernamecheck="+u);
+        
+	}
+}
+function checkemail(){
+	var e = _("email").value;
+	if(e != ""){
+		_("emailstatus").innerHTML = 'checking ...';
+
+		function ajaxObj(meth, url){
+	var x = new XMLHttpRequest();
+	x.open(meth, url, true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	return x;
+}
+function ajaxReturn(x){
+	if (x.readyState ==4 && x.status == 200) {
+		return true;
+	}
+}
+		
+		var ajax = ajaxObj("POST", "credentialschecker.php");
+        ajax.onreadystatechange = function() {
+	        if(ajaxReturn(ajax) == true) {
+	            _("emailstatus").innerHTML = ajax.responseText;
+	        }
+        }
+        ajax.send("emailcheck="+e);
+        
+	}
+}
 
 		function uploadProfilePic(){
          var id = document.getElementById("imageUploadDiv");
@@ -174,8 +273,10 @@ else {
 		}
 
 		function addContentToEditor(componentId, editorId,btnType){
-			if (btnType == 'edit') {
-				var data = _(componentId).value;
+			var data = _(componentId).innerHTML;
+			alert(data+" button");
+			
+			if (btnType == 'Edit') {
 			alert(data);
 			_(editorId).value = data;
 
@@ -189,6 +290,7 @@ else {
 			}else{
 
 				_("rstatus").innerHTML = 'Please wait...';
+				_("PersonalBtn").style.display = "none";
 			var ajax =  new XMLHttpRequest();
 			ajax.open("POST","profile.php",true);
 			ajax.setRequestHeader("content-type", "application/x-www-form-urlencoded");
@@ -197,7 +299,9 @@ else {
 					alert(this.responseText);
 				_("PersonalDisplayTextDiv").innerHTML = PersonalDescription;
 				toggleHtmlElement('PersonalDescriptionDiv','showPersonalDescriptionArea');
-				_("PersonalDescription").innerHTML = '';
+				_("PersonalDescriptionArea").innerHTML = '';
+				_("rstatus").innerHTML = '';
+				_("PersonalBtn").style.display = "block";
 				}
 			}
 			ajax.send("PersonalDescription="+PersonalDescription+"&PersonalBtn="+PersonalBtn);
@@ -325,12 +429,14 @@ else {
 				<form onsubmit="return false;">
 					<div class="form-group" id="editnamediv" style="display: block;">
 						<label for="name">Name: </label>
-						<input type="text" name="name" id="name" class="form-control" value="<?php echo $username; ?>">
+						<input type="text" name="name" id="name" onfocus="emptyElement('unamestatus')" onblur="checkusername()" onkeyup="restrict('username')" maxlength="16"  class="form-control" value="<?php echo $username; ?>">
 					</div>
+	    	<span id="unamestatus"></span>
 					<div class="form-group" id="editemaildiv" style="display: block;">
 						<label for="email">Emai: </label>
-						<input type="text" name="email" id="email" class="form-control" value="<?php echo $email; ?>">
+						<input type="text" name="email" id="email" onfocus="emptyElement('emailstatus')" onblur="checkemail()" onkeyup="restrict('email')" maxlength="16"  class="form-control" value="<?php echo $email; ?>">
 					</div>
+	    	<span id="emailstatus"></span>
 					<div class="form-group" id="editgenderdiv" style="display: block;">
 						<label for="gender">Gender: </label>
 						<select class="form-control" id="gender">
@@ -357,15 +463,15 @@ else {
 						<div id="PersonalDisplayTextDiv">
 								<?php echo $description; ?>
 							</div></div>
-<div  id="showPersonalDescriptionArea"  style="display:block;">
-						<a href="#" class="pull-right" onclick="return false;" onmousedown="toggleHtmlElement('PersonalDescriptionDiv','showPersonalDescriptionArea')" onclick="addContentToEditor('PersonalDisplayTextDiv','PersonalDescriptionArea','<?php echo $btnType; ?>')"><?php echo $btnType; ?> a brief intro</a>
-					</div>
 <div class="form-group" style="display:none;margin-top:20px;" id="PersonalDescriptionDiv">
  <label for="description">Describe yourself briefly:</label>
  <textarea class="form-control" id="PersonalDescriptionArea" placeholder="Enter <?php echo $userlevel; ?> description here"></textarea>
 				<span><p id="rstatus" style="color: green;"></p></span>
  <button class="btn btn-primary pull-right" id="PersonalBtn" style="margin:3px;" onclick="PersonalDescription('<?php echo $btnType; ?>')"><?php echo $btnType; ?> Summary</button>
 </div>
+<div  id="showPersonalDescriptionArea"  style="display:block;">
+						<a href="#" class="pull-right" onclick="return false;" onfocus="addContentToEditor('PersonalDisplayTextDiv','PersonalDescriptionArea','<?php echo $btnType; ?>')" onmousedown="toggleHtmlElement('PersonalDescriptionDiv','showPersonalDescriptionArea')"><?php echo $btnType; ?> a brief intro</a>
+					</div>
 <div id="passwordchange" style="margin-top: 50px;">
 	<h4>Password</h4><hr>
 	<form onsubmit="return false;">

@@ -26,6 +26,6 @@ $mail->Body    = $msg;
 if(!$mail->send()) { 
    echo 'email_send_failed| ' .$mail->ErrorInfo;
 } else { 
-   echo 'success';
+   echo 'success|';
 }
 ?>

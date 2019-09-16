@@ -9,8 +9,8 @@ $tbl_users = "CREATE TABLE IF NOT EXISTS users (
 			gender ENUM('m','f') NOT NULL,
 			country VARCHAR(255) NOT NULL,
                         `county_or_state` VARCHAR(50) NOT NULL , 
-			userlevel ENUM('a','b','c','d') NOT NULL DEFAULT 'a',
-			avatar VARCHAR(255) NULL DEFAULT 'avatar_default.png',
+			userlevel ENUM('a','b','c','d','e','f') NOT NULL DEFAULT 'f',
+			avatar VARCHAR(255) NULL,
 			ip VARCHAR(255) NOT NULL,
 			signup DATETIME NOT NULL,
 			lastlogin DATETIME NOT NULL,
@@ -26,6 +26,17 @@ if ($query == TRUE) {
 }else{
 
 	echo "<h3>User table not created :(</h3>";
+}
+
+////////////////////////////////////////////////////////////
+$sql = "ALTER TABLE `users` ADD FOREIGN KEY (`id`) REFERENCES `useroptions`(`id`) ON DELETE CASCADE ON UPDATE RESTRICT";
+
+$query = mysqli_query($db_connection, $sql);
+if ($query == TRUE) {
+        echo "<h3>Foreign Key added to useroptions :)</h3>";
+}else{
+
+        echo "<h3>Foreign Key not added to useroptions :(</h3>";
 }
 ////////////////////////////////////
 $tbl_useroptions = "CREATE TABLE IF NOT EXISTS useroptions ( 

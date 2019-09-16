@@ -110,8 +110,8 @@ function forgotpass(){
 	if(e == ""){
 		_("status").innerHTML = '<strong style="color: red;">Type in your email address</strong>';
 	} else {
-		//_("forgotpassbtn").style.display = "none";
-		_("status").innerHTML = '<strong style="color:#009900;">please wait ...</strong>';
+		_("forgotpassbtn").style.display = "none";
+		_("status").innerHTML = '<br><strong style="color:#009900;">please wait ...</strong>';
 
 	function ajaxObj(meth, url){
 	var x = new XMLHttpRequest();
@@ -135,15 +135,19 @@ function ajaxReturn(x){
 					alert("Sent");
 				} else if (response1 == "no_exist"){
 					_("status").innerHTML = "<h3 style='background-color: red;'>Sorry that email address is not in our system</h3>";
+		_("forgotpassbtn").style.display = "block";
 				} else if(response1 == "email_send_failed"){
 					_("status").innerHTML = "<h3 style='background-color: red;'>Mail function failed to execute</h3>";
+		_("forgotpassbtn").style.display = "block";
 					alert(response2);
 				} else { 
 					alert(response1);
 					_("status").innerHTML = "<h3 style='background-color: red;'>An unknown error occurred  </h3>"+ajaxReturn(ajax);
+		_("forgotpassbtn").style.display = "block";
 				}
 	        }else{
 	        	_("status").innerHTML = "Ajax object is false";
+		_("forgotpassbtn").style.display = "block";
 	        }
         }
         ajax.send("e="+e);

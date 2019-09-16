@@ -3,7 +3,8 @@ session_start();
     // CONNECT TO THE DATABASE
    include_once("php_includes/db_connection.php");
 
-    $id=$username=$email=$phone=$password=$db_gender=$gender=$description=$country=$county_or_state=$userlevel=$avatar=$ip=$signup=$lastlogin=$notescheck=$activated='null';
+    $id=$username=$email=$phone=$password=$db_gender=$gender=$description=$country=$county_or_state=$userlevel=$ip=$signup=$lastlogin=$notescheck=$activated='';
+    $avatar=null;
     $profileLink = '';
 
 $loginLink = '<ul class="nav navbar-nav navbar-right"><li><a href="login.php"><span class="glyphicon glyphicon-log-in"> Login</span></a></li><li><a href="signup.php"><span class="glyphicon glyphicon-user"> SignUp</span></a></li></ul>';
@@ -37,7 +38,7 @@ $join_login_btns = ' <button class="btn btn-default" onclick="signup()">Sign UP<
     }
 
     if ($avatar == null) {
-    $loginLink = '<ul class="nav navbar-nav navbar-right"><li><a href="profile.php"><span class="glyphicon glyphicon-user">'.$username.'</span></a></li><li><a href="logout.php"><span class="glyphicon glyphicon-log-out"> Logout</span></a></li></ul>';
+    $loginLink = '<ul class="nav navbar-nav navbar-right"><li><a href="profile.php"><span class="glyphicon glyphicon-user"> ' .$username.'</span></a></li><li><a href="logout.php"><span class="glyphicon glyphicon-log-out"> Logout</span></a></li></ul>';
     }else{
 
     $loginLink = '<ul class="nav navbar-nav navbar-right"><li><a href="profile.php"><img src="user/'.$username.'/'.$avatar.'" alt="'.$username.' img not found" width="50px" height="50px" style="border-radius:3px;margin-right:5px;"> '.$username.'</a></li><li><a href="logout.php"><span class="glyphicon glyphicon-log-out"> Logout</span></a></li></ul>';
